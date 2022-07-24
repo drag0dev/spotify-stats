@@ -8,9 +8,8 @@
         justify-content: center;
         align-items: center;
 
-        background-color: black;
-        color: #1DB954;
         border-top: 2px solid #1DB954;
+        font-weight: bold;
     }
     .footer p{
         text-align: center;

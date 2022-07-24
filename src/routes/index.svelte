@@ -11,8 +11,6 @@
         margin-top: 0;
         margin-bottom: 0;
         width: 60vw;
-        background-color: black;
-        color: #1DB954;
     }
 
     .options{
