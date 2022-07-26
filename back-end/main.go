@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -24,10 +25,21 @@ type statsReqBody struct{
 }
 
 type tokenResp struct{
-    Access_token string `json:"access_token"`
-    Token_type string `json:"access_token"`
-    Expires_in int64 `json:"access_token"`
-    Refresh_token string `json:"access_token"`
+    AccessToken string `json:"access_token"`
+    TokenType string `json:"token_type"`
+    ExpiresIn int64 `json:"expires_in"`
+    RefreshToken string `json:"refresh_token"`
+}
+
+type statsResp struct{
+    Href string `json:"href"`
+    Items []string `json:"items"`
+    Limit uint64 `json:"limit"`
+    Next string `json:"next"`
+    Offset uint64 `json:"offset"`
+    Previous string `json:"previous"`
+    Total uint64 `json:"total"`
+
 }
 
 var ctx context.Context = context.Background()
@@ -35,14 +47,47 @@ var redisDB *redis.Client
 var CLIENT_SECRET string
 
 var SPOTIFY_TOKEN_URL string = "https://accounts.spotify.com/api/token"
-var CLIENT_ID string = "f5940d4d679948c5a33bfce4ad03ac50"
+var SPOTIFY_BASE_URL string = "https://api.spotify.com/v1/me/top/"
+var CLIENT_ID string
 var REDIRECT_URI string
 
 func applyCORS(w *http.ResponseWriter){
     (*w).Header().Set("Content-Type", "application/json")
-    (*w).Header().Set("Access-Control-Allow-Origin", "http://localhost:8080")
+    (*w).Header().Set("Access-Control-Allow-Origin", "http://localhost:5713 https://api.spotify.com")
     (*w).Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
     (*w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Accept-Encoding, Content-Length")
+}
+
+func getArtists(token string)(statsResp, error){
+    req, err := http.NewRequest("GET", SPOTIFY_BASE_URL + "artists?limit=20&time_range=long_term", nil)
+    req.Header.Add("Authorization", "Bearer " + token)
+    req.Header.Add("Content-Type", "application/json")
+    if err != nil {
+        return statsResp{}, err
+    }
+
+    resp, err := http.DefaultClient.Do(req)
+    if err != nil {
+        return statsResp{}, err
+    }
+    defer resp.Body.Close()
+
+    if resp.StatusCode != 200{
+        return statsResp{}, errors.New("resp not 200")
+    }
+
+    readBody, err := ioutil.ReadAll(resp.Body)
+    if err != nil {
+        return statsResp{}, err
+    }
+
+    var respJson statsResp
+    err = json.Unmarshal([]byte(readBody), &respJson)
+    if err != nil {
+        return statsResp{}, err
+    }
+
+    return respJson, nil
 }
 
 // POST @ /stats
@@ -76,13 +121,11 @@ func stats(w http.ResponseWriter, r *http.Request){
         return
     }
 
-
     // generate params to be url encoded
     params := url.Values{}
     params.Add("grant_type", "authorization_code")
     params.Add("code", string(reqBodyJson.Code))
     params.Add("redirect_uri", REDIRECT_URI)
-    log.Print(REDIRECT_URI)
 
     // exchange code for token
     var encrpytedToken = base64.StdEncoding.EncodeToString([]byte(CLIENT_ID + ":" + CLIENT_SECRET))
@@ -90,7 +133,7 @@ func stats(w http.ResponseWriter, r *http.Request){
     req.Header.Add("Authorization", "Basic " + encrpytedToken)
     req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
     if err != nil {
-        w.WriteHeader(http.StatusBadRequest)
+        w.WriteHeader(http.StatusInternalServerError)
         return
     }
 
@@ -109,6 +152,20 @@ func stats(w http.ResponseWriter, r *http.Request){
 
     var spotifyRes tokenResp
     err = json.Unmarshal(body, &spotifyRes)
+    if err != nil{
+        log.Println("Error unmarshaling token:", err)
+        w.WriteHeader(http.StatusInternalServerError)
+        return
+    }
+
+    artists, err := getArtists(spotifyRes.AccessToken)
+    if err != nil{
+        log.Println("Error getting artists:", err)
+        w.WriteHeader(http.StatusInternalServerError)
+        return
+    }
+
+    json.NewEncoder(w).Encode(artists)
 }
 
 func main(){
@@ -116,13 +173,19 @@ func main(){
     DB_PASSWORD := os.Getenv("DB_PASSWORD")
     CLIENT_SECRET = os.Getenv("CLIENT_SECRET")
     if CLIENT_SECRET == ""{
-        log.Println("CLIENT_SECERT env var has to be set")
+        log.Println("CLIENT_SECRET env var has to be set")
         return
     }
 
     REDIRECT_URI = os.Getenv("REDIRECT_URI")
     if REDIRECT_URI == ""{
-        REDIRECT_URI = "http://localhost:5173/stats"
+        REDIRECT_URI = "https://spotify-stats-gray.vercel.app/stats"
+    }
+
+    CLIENT_ID = os.Getenv("CLIENT_ID")
+    if CLIENT_ID == ""{
+        log.Println("CLIENT_ID env var has to be set")
+        return
     }
 
     // connecting to redis
