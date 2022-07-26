@@ -37,7 +37,7 @@
     import Header from "./_components/Header.svelte";
     import Footer from "./_components/Footer.svelte";
 
-    import {grabCode, getStats, getAccessToken} from "../lib/stats";
+    import { grabCode, getStats } from "../lib/stats";
 
     let message = '';
     let stats = false;
@@ -50,21 +50,11 @@
             message = `Error: ${e}`;
         }
         message = 'Grabbing the stats...'
-
-        let temp;
-        try{
-            temp = await grabCode();
-        }catch(e){
-            message = `Error: ${e}`;
+        let stats;
+        stats = await getStats(code);
+        if (stats == undefined){
+            message = `Error: could not get stats, pleasa try again later!`;
         }
-
-        let accessCode = '';
-        try{
-            accessCode = await getAccessToken(code);
-        }catch(e){
-            message = `Error: ${e}`;
-        }
-        console.log(accessCode)
         stats = true;
     });
 

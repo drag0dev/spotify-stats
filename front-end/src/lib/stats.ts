@@ -1,7 +1,6 @@
-const baseUrlAT = 'https://accounts.spotify.com/api/token'
-const baseUrlTop = 'https://api.spotify.com/v1/me/top/type';
-const clientId = 'f5940d4d679948c5a33bfce4ad03ac50';
-const redirect_uri = 'http://localhost:5173/stats';
+let SERVER_URL = "https://spotify-stats-production.up.railway.app/"
+
+import type { stats } from "./interfaces";
 
 export const grabCode = (): Promise<string> => {
    let res: Promise<string> = new Promise((reslove, reject) => {
@@ -15,30 +14,19 @@ export const grabCode = (): Promise<string> => {
    return res;
 }
 
-export const getAccessToken = (code: string): Promise<string> => {
-    let promise: Promise<string> = new Promise(async (resolve, reject) => {
-        let res = await fetch(baseUrlAT, {
-            method: "POST",
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Authorization': 'Basic ' + btoa(`${clientId}:`)
-            },
-            body: new URLSearchParams({
-                'grant_type': 'authorization_code',
-                'code': code,
-                'redirect_uri': 'http://localhost:5173/stats'
-            })
-        });
-        let data = await res.json();
-        if (data.error){
-            reject(data.error);
-        } else{
-            resolve (data.access_token);
-        }
+export const getStats = async (code: string): Promise<stats | undefined> => {
+    let res = fetch(SERVER_URL + "stats", {
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json:'
+        },
+        body: JSON.stringify({code: code, stat: 3}) // TODO: different stats
     });
-    return promise;
-}
-
-export const getStats = () => {
-
+    if ((await res).status != 200){
+        console.log('cant get stats'); //TODO: only for now
+    }else{
+        let data: Promise<stats> = (await res).json();
+        return data;
+    }
+    return undefined;
 }
