@@ -4,7 +4,7 @@ const scopes = 'user-top-read';
 const baseUrl = 'https://accounts.spotify.com/authorize';
 
 const auth = () => {
-    window.location.replace(`${baseUrl}?response_type=code&client_id=${clientId}&redirect_uri=${redirect_uri}&scopes=${scopes}`);
+    window.location.replace(`${baseUrl}?response_type=code&client_id=${clientId}&redirect_uri=${redirect_uri}&scope=${scopes}`);
 }
 
 export default auth;
