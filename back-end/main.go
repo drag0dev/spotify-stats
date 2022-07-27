@@ -31,14 +31,33 @@ type tokenResp struct{
     RefreshToken string `json:"refresh_token"`
 }
 
-type statsResp struct{
-    Href string `json:"href"`
-    Items []string `json:"items"`
-    Limit uint64 `json:"limit"`
-    Next string `json:"next"`
-    Offset uint64 `json:"offset"`
-    Previous string `json:"previous"`
-    Total uint64 `json:"total"`
+type artist struct{
+    External_urls struct{
+        Spotify string              `json:"spotify"`
+    }                               `json:"external_urls"`
+    Followers struct{
+        //Href string                 `json:"href"`
+        Total uint64                `json:"total"`
+    }                               `json:"followers"`
+    Genres []string                 `json:"genres"`
+    //Id string                       `json:"id"`
+    Images []struct{
+        Height uint32               `json:"height"`
+        Width uint32                `json:"width"`
+        Url string                  `json:"url"`
+    }                               `json:"images"`
+    Name string                     `json:"name"`
+    Popularity uint64               `json:"popularity"`
+}
+
+type statsRespArtists struct{
+    //Href string `json:"href"`
+    Items []artist `json:"items"`
+    //Limit uint64 `json:"limit"`
+    //Next string `json:"next"`
+    //Offset uint64 `json:"offset"`
+    //Previous string `json:"previous"`
+    //Total uint64 `json:"total"`
 
 }
 
@@ -54,37 +73,37 @@ var REDIRECT_URI string
 func applyCORS(w *http.ResponseWriter){
     (*w).Header().Set("Content-Type", "application/json")
     (*w).Header().Set("Access-Control-Allow-Origin", "https://spotify-stats-gray.vercel.app")
-    (*w).Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+    (*w).Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
     (*w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Accept-Encoding, Content-Length")
 }
 
-func getArtists(token string)(statsResp, error){
-    req, err := http.NewRequest("GET", SPOTIFY_BASE_URL + "artists?limit=20&time_range=long_term", nil)
+func getArtists(token string)(statsRespArtists, error){
+    req, err := http.NewRequest("GET", SPOTIFY_BASE_URL + "artists?limit=10&time_range=long_term", nil)
     req.Header.Add("Authorization", "Bearer " + token)
     req.Header.Add("Content-Type", "application/json")
     if err != nil {
-        return statsResp{}, err
+        return statsRespArtists{}, err
     }
 
     resp, err := http.DefaultClient.Do(req)
     if err != nil {
-        return statsResp{}, err
+        return statsRespArtists{}, err
     }
     defer resp.Body.Close()
 
     if resp.StatusCode != 200{
-        return statsResp{}, errors.New("resp not 200")
+        return statsRespArtists{}, errors.New("response from spotify: " + resp.Status)
     }
 
     readBody, err := ioutil.ReadAll(resp.Body)
     if err != nil {
-        return statsResp{}, err
+        return statsRespArtists{}, err
     }
 
-    var respJson statsResp
+    var respJson statsRespArtists
     err = json.Unmarshal([]byte(readBody), &respJson)
     if err != nil {
-        return statsResp{}, err
+        return statsRespArtists{}, err
     }
 
     return respJson, nil
@@ -144,6 +163,11 @@ func stats(w http.ResponseWriter, r *http.Request){
     }
     defer resp.Body.Close()
 
+    if resp.StatusCode != 200{
+        w.WriteHeader(http.StatusBadRequest)
+        return
+    }
+
     body, err := ioutil.ReadAll(resp.Body)
     if err != nil {
         w.WriteHeader(http.StatusInternalServerError)
@@ -153,7 +177,7 @@ func stats(w http.ResponseWriter, r *http.Request){
     var spotifyRes tokenResp
     err = json.Unmarshal(body, &spotifyRes)
     if err != nil{
-        log.Println("Error unmarshaling token:", err)
+        log.Println("Error unmarshalling token:", err)
         w.WriteHeader(http.StatusInternalServerError)
         return
     }
@@ -165,7 +189,7 @@ func stats(w http.ResponseWriter, r *http.Request){
         return
     }
 
-    json.NewEncoder(w).Encode(artists)
+    json.NewEncoder(w).Encode(artists.Items)
 }
 
 func main(){

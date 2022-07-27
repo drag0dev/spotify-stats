@@ -31,16 +31,19 @@
     }
 </style>
 
-<script>
+<script type="ts">
     import { onMount } from 'svelte';
+    import type { artist } from '$lib/interfaces';
 
     import Header from "./_components/Header.svelte";
     import Footer from "./_components/Footer.svelte";
 
     import { grabCode, getStats } from "../lib/stats";
+    import Artist from './_components/Artist.svelte';
 
     let message = '';
     let stats = false;
+    let data: artist[];
 
     onMount(async () => {
         let code = '';
@@ -50,11 +53,7 @@
             message = `Error: ${e}`;
         }
         message = 'Grabbing the stats...'
-        let stats;
-        stats = await getStats(code);
-        if (stats == undefined){
-            message = `Error: could not get stats, pleasa try again later!`;
-        }
+        data = await getStats(code);
         stats = true;
     });
 
@@ -68,8 +67,9 @@
         {#if stats === false}
             <p>{message}</p>
         {:else}
-            <button>Artists</button>
-            <button>Songs</button>
+            {#each data as a}
+                <Artist artist={{...a, genres: a.genres.splice(0, 2)}}/>
+            {/each}
         {/if}
     </div>
 
