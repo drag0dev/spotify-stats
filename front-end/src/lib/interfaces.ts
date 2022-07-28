@@ -1,11 +1,6 @@
 export interface stats{
-    href: string,
-    items: string[],
-    limit: number,
-    next: string | null,
-    offset: number,
-    previous: string | null,
-    total: number
+    artists: artist[],
+    tracks: track[]
 }
 
 export interface artist{
@@ -23,4 +18,25 @@ export interface artist{
     }[],
     name: string,
     popularity: number
+}
+
+export interface track{
+    album: {
+        artists: {
+            name: string,
+            external_urls: {
+                spotify: string
+            }
+        }[]
+    },
+    external_urls: {
+        spotify: string
+    },
+    images: {
+        height: number,
+        width: number,
+        url: string
+    }[],
+    name: string,
+    release_date: string
 }
