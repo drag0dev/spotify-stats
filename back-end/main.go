@@ -50,6 +50,36 @@ type artist struct{
     Popularity uint64               `json:"popularity"`
 }
 
+type track struct{
+    Album struct{
+        // Album_type string
+        Artists []struct{
+            External_urls struct{
+                Spotify string      `json:"spotify"`
+            }               `json:"external_urls"`
+            // Href string
+            // Id string
+            Name string     `json:"name"`
+            // Type string
+            // Uri string
+
+        }                   `json:"artists"`
+    }                       `json:"album"`
+    // Available_markets []string
+    External_urls struct{
+        Spotify string      `json:"spotify"`
+    }                       `json:"external_urls"`
+    // Href string
+    // Id string
+    Images []struct{
+        Height uint32      `json:"height"`
+        Width uint32       `json:"Width"`
+        Url string         `json:"url"`
+    }                      `json:"images"`
+    Name string            `json:"name"`
+    Release_date string    `json:"release_date"`
+}
+
 type statsRespArtists struct{
     //Href string `json:"href"`
     Items []artist `json:"items"`
@@ -58,7 +88,21 @@ type statsRespArtists struct{
     //Offset uint64 `json:"offset"`
     //Previous string `json:"previous"`
     //Total uint64 `json:"total"`
+}
 
+type statsRespTrack struct{
+    //Href string `json:"href"`
+    Items []track `json:"items"`
+    //Limit uint64 `json:"limit"`
+    //Next string `json:"next"`
+    //Offset uint64 `json:"offset"`
+    //Previous string `json:"previous"`
+    //Total uint64 `json:"total"`
+}
+
+type statsRespJSON struct{
+    Artists []artist    `json:"artists"`
+    Tracks []track      `json:"tracks"`
 }
 
 var ctx context.Context = context.Background()
@@ -73,17 +117,18 @@ var REDIRECT_URI string
 func applyCORS(w *http.ResponseWriter){
     (*w).Header().Set("Content-Type", "application/json")
     (*w).Header().Set("Access-Control-Allow-Origin", "https://spotify-stats-gray.vercel.app")
+    //(*w).Header().Set("Access-Control-Allow-Origin", "http://localhost:5173") // dev
     (*w).Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
     (*w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Accept-Encoding, Content-Length")
 }
 
 func getArtists(token string)(statsRespArtists, error){
     req, err := http.NewRequest("GET", SPOTIFY_BASE_URL + "artists?limit=10&time_range=long_term", nil)
-    req.Header.Add("Authorization", "Bearer " + token)
-    req.Header.Add("Content-Type", "application/json")
     if err != nil {
         return statsRespArtists{}, err
     }
+    req.Header.Add("Authorization", "Bearer " + token)
+    req.Header.Add("Content-Type", "application/json")
 
     resp, err := http.DefaultClient.Do(req)
     if err != nil {
@@ -106,6 +151,38 @@ func getArtists(token string)(statsRespArtists, error){
         return statsRespArtists{}, err
     }
 
+    return respJson, nil
+}
+
+func getSongs(token string)(statsRespTrack, error){
+    req, err := http.NewRequest("GET", SPOTIFY_BASE_URL + "tracks?limit=20&time_range=long_term", nil)
+    if err != nil {
+        return statsRespTrack{}, nil
+    }
+    req.Header.Add("Authorization", "Bearer " + token)
+    req.Header.Add("Content-Type", "application/json")
+
+    resp, err := http.DefaultClient.Do(req)
+    if err != nil{
+        return statsRespTrack{}, err
+    }
+    defer resp.Body.Close()
+
+
+    if resp.StatusCode != 200{
+        return statsRespTrack{}, errors.New("response from spotify: " + resp.Status)
+    }
+
+    readBody, err := ioutil.ReadAll(resp.Body)
+    if err != nil{
+        return statsRespTrack{}, err
+    }
+
+    var respJson statsRespTrack
+    err = json.Unmarshal([]byte(readBody), &respJson)
+    if err != nil{
+        return statsRespTrack{}, err
+    }
     return respJson, nil
 }
 
@@ -189,7 +266,14 @@ func stats(w http.ResponseWriter, r *http.Request){
         return
     }
 
-    json.NewEncoder(w).Encode(artists.Items)
+    tracks, err := getSongs(spotifyRes.AccessToken)
+    if err != nil{
+        log.Println("Error getting tracks:", err)
+        w.WriteHeader(http.StatusInternalServerError)
+        return
+    }
+
+    json.NewEncoder(w).Encode(statsRespJSON{Tracks: tracks.Items, Artists: artists.Items})
 }
 
 func main(){
@@ -204,6 +288,7 @@ func main(){
     REDIRECT_URI = os.Getenv("REDIRECT_URI")
     if REDIRECT_URI == ""{
         REDIRECT_URI = "https://spotify-stats-gray.vercel.app/stats"
+        //REDIRECT_URI = "http://localhost:5173/stats" // dev
     }
 
     CLIENT_ID = os.Getenv("CLIENT_ID")
