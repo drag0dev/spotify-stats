@@ -19,9 +19,6 @@ import (
 type statsReqBody struct{
     Code string `json:"code"`
     Stat int64 `json:"stat"`
-    // stat: 0 - artist
-    //       1 - songs
-    //       2 - both
 }
 
 type tokenResp struct{

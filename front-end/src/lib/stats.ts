@@ -1,5 +1,5 @@
 let SERVER_URL = "https://spotify-stats-production.up.railway.app/"
-// let SERVER_URL = "http://localhost:8080/" //dev
+//let SERVER_URL = "http://localhost:8080/" //dev
 
 import type { stats } from "./interfaces";
 
@@ -21,7 +21,7 @@ export const getStats = async (code: string): Promise<stats> => {
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({code: code, stat: 3}) // TODO: different stats
+        body: JSON.stringify({code: code})
     });
     if ((await res).status == 200){
         let data: Promise<stats> = (await res).json();
