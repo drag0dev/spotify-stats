@@ -56,28 +56,28 @@ type track struct{
         Artists []struct{
             External_urls struct{
                 Spotify string      `json:"spotify"`
-            }               `json:"external_urls"`
+            }                       `json:"external_urls"`
             // Href string
             // Id string
-            Name string     `json:"name"`
+            Name string             `json:"name"`
             // Type string
             // Uri string
-
-        }                   `json:"artists"`
-    }                       `json:"album"`
+        }                           `json:"artists"`
+        Release_date string         `json:"release_date"`
+        Images []struct{
+            Height uint32           `json:"height"`
+            Width uint32            `json:"width"`
+            Url string              `json:"url"`
+        }                           `json:"images"`
+    }                               `json:"album"`
     // Available_markets []string
     External_urls struct{
-        Spotify string      `json:"spotify"`
-    }                       `json:"external_urls"`
+        Spotify string              `json:"spotify"`
+    }                               `json:"external_urls"`
     // Href string
     // Id string
-    Images []struct{
-        Height uint32      `json:"height"`
-        Width uint32       `json:"Width"`
-        Url string         `json:"url"`
-    }                      `json:"images"`
-    Name string            `json:"name"`
-    Release_date string    `json:"release_date"`
+    Name string                     `json:"name"`
+    Popularity uint64               `json:"popularity"`
 }
 
 type statsRespArtists struct{
@@ -151,11 +151,18 @@ func getArtists(token string)(statsRespArtists, error){
         return statsRespArtists{}, err
     }
 
+    // only three genres
+    for i, artist := range respJson.Items{
+        if len(artist.Genres) > 3 {
+            respJson.Items[i].Genres = artist.Genres[0:3]
+        }
+    }
+
     return respJson, nil
 }
 
 func getSongs(token string)(statsRespTrack, error){
-    req, err := http.NewRequest("GET", SPOTIFY_BASE_URL + "tracks?limit=20&time_range=long_term", nil)
+    req, err := http.NewRequest("GET", SPOTIFY_BASE_URL + "tracks?limit=15&time_range=long_term", nil)
     if err != nil {
         return statsRespTrack{}, nil
     }
@@ -167,7 +174,6 @@ func getSongs(token string)(statsRespTrack, error){
         return statsRespTrack{}, err
     }
     defer resp.Body.Close()
-
 
     if resp.StatusCode != 200{
         return statsRespTrack{}, errors.New("response from spotify: " + resp.Status)
@@ -182,6 +188,13 @@ func getSongs(token string)(statsRespTrack, error){
     err = json.Unmarshal([]byte(readBody), &respJson)
     if err != nil{
         return statsRespTrack{}, err
+    }
+
+    // only three artists
+    for i, track := range respJson.Items{
+        if len(track.Album.Artists) > 3 {
+            respJson.Items[i].Album.Artists = track.Album.Artists[0:3]
+        }
     }
     return respJson, nil
 }
@@ -208,11 +221,6 @@ func stats(w http.ResponseWriter, r *http.Request){
     var reqBodyJson statsReqBody
     err = json.Unmarshal([]byte(reqBody), &reqBodyJson)
     if err != nil{
-        w.WriteHeader(http.StatusBadRequest)
-        return
-    }
-
-    if reqBodyJson.Stat < 0 || reqBodyJson.Stat > 3{
         w.WriteHeader(http.StatusBadRequest)
         return
     }
@@ -288,7 +296,7 @@ func main(){
     REDIRECT_URI = os.Getenv("REDIRECT_URI")
     if REDIRECT_URI == ""{
         REDIRECT_URI = "https://spotify-stats-gray.vercel.app/stats"
-        //REDIRECT_URI = "http://localhost:5173/stats" // dev
+        // REDIRECT_URI = "http://localhost:5173/stats" // dev
     }
 
     CLIENT_ID = os.Getenv("CLIENT_ID")
