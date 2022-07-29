@@ -1,6 +1,7 @@
 let SERVER_URL = "https://spotify-stats-production.up.railway.app/"
+// let SERVER_URL = "http://localhost:8080/" //dev
 
-import type { artist } from "./interfaces";
+import type { stats } from "./interfaces";
 
 export const grabCode = (): Promise<string> => {
    let res: Promise<string> = new Promise((reslove, reject) => {
@@ -14,7 +15,7 @@ export const grabCode = (): Promise<string> => {
    return res;
 }
 
-export const getStats = async (code: string): Promise<artist[]> => {
+export const getStats = async (code: string): Promise<stats> => {
     let res = fetch(SERVER_URL + "stats", {
         method: "POST",
         headers: {
@@ -22,11 +23,12 @@ export const getStats = async (code: string): Promise<artist[]> => {
         },
         body: JSON.stringify({code: code, stat: 3}) // TODO: different stats
     });
-    if ((await res).status != 200){
-        console.log('cant get stats'); //TODO: only for now
-    }else{
-        let data: Promise<artist[]> = (await res).json();
+    if ((await res).status == 200){
+        let data: Promise<stats> = (await res).json();
         return data;
     }
-    return [];
+    return { // some form of error handling
+        artists: [],
+        tracks: []
+    };
 }

@@ -11,7 +11,7 @@
         <p>Followers: {artist.followers.total}</p>
         <p>Popularity: {artist.popularity}/100</p>
         <p>Genres: 
-            {#each artist.genres as g}
+            {#each artist.genres as g, i (i)}
                 {g + " "} 
             {/each}
         </p>

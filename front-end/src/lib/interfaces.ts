@@ -28,15 +28,16 @@ export interface track{
                 spotify: string
             }
         }[]
+        release_date: string,
+        images: {
+            height: number,
+            width: number,
+            url: string
+        }[],
     },
     external_urls: {
         spotify: string
     },
-    images: {
-        height: number,
-        width: number,
-        url: string
-    }[],
     name: string,
-    release_date: string
+    popularity: number
 }
