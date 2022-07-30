@@ -12,7 +12,7 @@
         border-bottom: 2px solid #1DB954;
     }
     .header h1{
-        font-size: 5vw;
+        font-size: 4vw;
     }
 </style>
 

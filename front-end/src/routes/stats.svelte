@@ -51,14 +51,14 @@
     {/if}
 
     {#if option == Option.Tracks}
-        {#each data.tracks as t (t.name)}
-            <Track track={t}/>
+        {#each data.tracks as t, i (t.name)}
+            <Track track={t} index={i}/>
         {/each}
     {/if}
 
     {#if option == Option.Artists}
-        {#each data.artists as a (a.name)}
-            <Artist artist={a}/>
+        {#each data.artists as a, i (a.name)}
+            <Artist artist={a} index={i}/>
         {/each}
     {/if}
 
@@ -68,7 +68,7 @@
 <style>
     .stats{
         width: 60%;
-        min-height: 80vh;
+        min-height: 40vh;
         margin-left: 20%;
         margin-right: 20%;
     }
@@ -98,6 +98,7 @@
         box-shadow: 3px 3px 3px 1px #1DB954;
         border-radius: 20px;
         cursor: pointer;
+        font-size: 1vw;
     }
     .options button:hover{
         border: 2px solid lightblue;
@@ -109,5 +110,7 @@
         text-align: center;
         color: red;
         font-size: 2vw;
+        padding-top: 5vh;
+        padding-bottom: 5vh;
     }
 </style>

@@ -14,11 +14,17 @@
     .footer p{
         text-align: center;
     }
+
+    a{
+        text-decoration: none;
+        color: #1DB954;
+    }
+
 </style>
 
 
 <div class="footer">
     <p>
-        made by drag0dev 2022 &copy;
+        made by <a href="https://www.github.com/drag0dev" target="_blank">drag0dev</a> 2022 &copy;
     </p>
 </div>

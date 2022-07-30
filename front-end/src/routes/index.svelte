@@ -24,12 +24,11 @@
             justify-items: center;
             justify-content: center;
             align-items: center;
-            height: 80vh;
-            max-height: 80vh;
+            height: 20vh;
         }
     .options button{
         width: 20%;
-        height: 5%;
+        height: 25%;
 
         color: #1DB954;
         background-color: black;
