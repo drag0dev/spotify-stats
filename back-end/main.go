@@ -11,9 +11,6 @@ import (
 	"net/url"
 	"os"
 	"strings"
-	"time"
-
-	"github.com/go-redis/redis/v8"
 )
 
 type statsReqBody struct{
@@ -103,7 +100,6 @@ type statsRespJSON struct{
 }
 
 var ctx context.Context = context.Background()
-var redisDB *redis.Client
 var CLIENT_SECRET string
 
 var SPOTIFY_TOKEN_URL string = "https://accounts.spotify.com/api/token"
@@ -113,8 +109,8 @@ var REDIRECT_URI string
 
 func applyCORS(w *http.ResponseWriter){
     (*w).Header().Set("Content-Type", "application/json")
-    (*w).Header().Set("Access-Control-Allow-Origin", "https://spotify-stats-gray.vercel.app")
-    //(*w).Header().Set("Access-Control-Allow-Origin", "http://localhost:5173") // dev
+    // (*w).Header().Set("Access-Control-Allow-Origin", "https://spotify-stats-gray.vercel.app")
+    (*w).Header().Set("Access-Control-Allow-Origin", "http://localhost:5173") // dev
     (*w).Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
     (*w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Accept-Encoding, Content-Length")
 }
@@ -282,8 +278,6 @@ func stats(w http.ResponseWriter, r *http.Request){
 }
 
 func main(){
-    DB_URI := os.Getenv("DB_URI")
-    DB_PASSWORD := os.Getenv("DB_PASSWORD")
     CLIENT_SECRET = os.Getenv("CLIENT_SECRET")
     if CLIENT_SECRET == ""{
         log.Println("CLIENT_SECRET env var has to be set")
@@ -292,34 +286,14 @@ func main(){
 
     REDIRECT_URI = os.Getenv("REDIRECT_URI")
     if REDIRECT_URI == ""{
-        REDIRECT_URI = "https://spotify-stats-gray.vercel.app/stats"
-        // REDIRECT_URI = "http://localhost:5173/stats" // dev
+        //REDIRECT_URI = "https://spotify-stats-gray.vercel.app/stats"
+        REDIRECT_URI = "http://localhost:5173/stats" // dev
     }
 
     CLIENT_ID = os.Getenv("CLIENT_ID")
     if CLIENT_ID == ""{
         log.Println("CLIENT_ID env var has to be set")
         return
-    }
-
-    // connecting to redis
-    for{
-        redisDB = redis.NewClient(&redis.Options{
-            Addr: DB_URI,
-            Password: DB_PASSWORD,
-            DB: 0,
-        })
-
-        // testing redis client
-        log.Println("Testing redis client...");
-        err := redisDB.Ping(ctx).Err()
-        if err != nil{
-            log.Println("Redis client error:", err, "(sleeping for 30s)")
-            _ = redisDB.Close()
-            time.Sleep(30 * time.Second)
-        }else{
-            break
-        }
     }
 
     http.Handle("/stats", http.HandlerFunc(stats))
