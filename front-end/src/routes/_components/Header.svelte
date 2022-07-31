@@ -1,6 +1,9 @@
 <style>
     .header{
-        width: 100%;
+        width: 60vw;
+        margin-left: 20vw;
+        margin-right: 20vw;
+
         height: 10vh;
         max-height: 10vh;
         text-align: center;
@@ -13,6 +16,24 @@
     }
     .header h1{
         font-size: 4vw;
+    }
+
+    @media screen and (max-width: 768px){
+        .header{
+            width: 80vw;
+            margin-left: 10vw;
+            margin-right: 10vw;
+        }
+
+        .header h1{
+            font-size: 7vw;
+        }
+    }
+
+    @media screen and (max-width: 320px){
+        .header h1{
+            font-size: 10vw;
+        }
     }
 </style>
 

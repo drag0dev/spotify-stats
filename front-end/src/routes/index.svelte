@@ -1,3 +1,19 @@
+<script>
+    import auth from "../lib/auth";
+</script>
+
+<div class="index">
+    <div class="index-message">
+        <p>
+            Want to see your top songs and artists? Just click Log in!
+        </p>
+    </div>
+
+    <div class="options" on:click={auth}>
+            <button>Log in</button>
+    </div>
+</div>
+
 <style>
     *{
         margin: 0;
@@ -8,24 +24,33 @@
         flex-direction: row;
         margin-left: 20vw;
         margin-right: 20vw;
-        margin-top: 0;
-        margin-bottom: 0;
         width: 60vw;
     }
 
-    .options{
+    .index-message{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
         width: 100%;
+        padding-top: 2vh;
     }
 
+    .index-message p{
+        text-align: center;
+        color: #1DB954;
+        font-weight: bold;
+    }
     .options{
-            display: flex;
-            flex-wrap: wrap;
-            flex-direction: row;
-            justify-items: center;
-            justify-content: center;
-            align-items: center;
-            height: 20vh;
-        }
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        flex-direction: row;
+        justify-items: center;
+        justify-content: center;
+        align-items: center;
+        height: 15vh;
+    }
     .options button{
         width: 20%;
         height: 25%;
@@ -42,20 +67,30 @@
         box-shadow: 3px 3px 3px 1px lightblue;
         color: lightblue;
     }
+
+    @media screen and (max-width: 768px){
+        .index{
+            margin-left: 10vw;
+            margin-right: 10vw;
+            width: 80vw;
+        }
+        p{
+            font-size: 3vw;
+        }
+
+        .options button{
+            width: 25%;
+            font-size: 3vw;
+        }
+    }
+    @media screen and (max-width: 480px){
+        .index p{
+            font-size: 4vw;
+        }
+        .options button{
+            width: 30%;
+            height: 4vh;
+            font-size: 4vw;
+        }
+    }
 </style>
-
-<script>
-    import Footer from "./_components/Footer.svelte";
-    import Header from "./_components/Header.svelte";
-    import auth from "../lib/auth";
-</script>
-
-<div class="index">
-    <Header />
-    
-    <div class="options" on:click={auth}>
-            <button>Log in</button>
-    </div>
-
-    <Footer />
-</div>

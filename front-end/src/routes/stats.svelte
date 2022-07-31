@@ -39,8 +39,6 @@
 </script>
 
 <div class="stats">
-    <Header />
-
     {#if stats === false}
         <p class="message-p">{message}</p>
     {:else}
@@ -61,14 +59,11 @@
             <Artist artist={a} index={i}/>
         {/each}
     {/if}
-
-    <Footer />
 </div>
 
 <style>
     .stats{
         width: 60%;
-        min-height: 40vh;
         margin-left: 20%;
         margin-right: 20%;
     }
@@ -112,5 +107,26 @@
         font-size: 2vw;
         padding-top: 5vh;
         padding-bottom: 5vh;
+    }
+
+    @media screen and (max-width: 768px){
+        .options button{
+            font-size: 3vw;
+            width: 40%;
+        }
+        .message-p{
+            font-size: 4vw;
+        }
+
+    }
+
+    @media screen and (max-width: 480px){
+        .options button{
+            font-size: 4vw;
+            width: 40%;
+        }
+        .message-p{
+            font-size: 4vw;
+        }
     }
 </style>

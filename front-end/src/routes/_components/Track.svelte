@@ -33,6 +33,7 @@
         margin-bottom: 2vh;
         width: 100%;
         justify-content: center;
+        align-items: center;
         padding-top: 2vh;
         padding-bottom: 2vh;
         border-radius: 20px;
@@ -68,5 +69,31 @@
     .even{
         background-color: rgba(0, 0, 0, 0.1);
     }
-
+    
+    @media screen and (max-width: 768px){
+        .track-div{
+            font-size: 2.5vw;
+        }
+        .index{
+            font-size: 2.5vw;
+            margin-right: 0.5vw;
+            margin-left: 0.5vw;
+        }
+    }
+    @media screen and (max-width: 480px){
+        .track-div{
+            font-size: 4vw;
+        }
+        .track-div-info{
+            width: 90%;
+            margin-left: 10%;
+            margin-right: 10%;
+        }
+        .index{
+            font-size: 4vw;
+            margin-right: 0.5vw;
+            margin-left: 0.5vw;
+            width: 100%;
+        }
+    }
 </style>
