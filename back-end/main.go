@@ -109,8 +109,8 @@ var REDIRECT_URI string
 
 func applyCORS(w *http.ResponseWriter){
     (*w).Header().Set("Content-Type", "application/json")
-    // (*w).Header().Set("Access-Control-Allow-Origin", "https://spotify-stats-gray.vercel.app")
-    (*w).Header().Set("Access-Control-Allow-Origin", "http://localhost:5173") // dev
+    (*w).Header().Set("Access-Control-Allow-Origin", "https://spotify-stats-gray.vercel.app")
+    // (*w).Header().Set("Access-Control-Allow-Origin", "http://localhost:5173") // dev
     (*w).Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
     (*w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Accept-Encoding, Content-Length")
 }
@@ -286,8 +286,8 @@ func main(){
 
     REDIRECT_URI = os.Getenv("REDIRECT_URI")
     if REDIRECT_URI == ""{
-        //REDIRECT_URI = "https://spotify-stats-gray.vercel.app/stats"
-        REDIRECT_URI = "http://localhost:5173/stats" // dev
+        REDIRECT_URI = "https://spotify-stats-gray.vercel.app/stats"
+        // REDIRECT_URI = "http://localhost:5173/stats" // dev
     }
 
     CLIENT_ID = os.Getenv("CLIENT_ID")
